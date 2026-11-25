@@ -25,19 +25,28 @@ namespace Personal_Fitness_Health_Tracker.Controller
 
         public void RunMainMenu()
         {
-            MainMenu type = this._view.GetMenuOption();
-
-            switch (type)
+            while (true)
             {
-                case MainMenu.HistoryTab:
-                    break;
+                MainMenu type = this._view.GetMenuOption();
+                switch (type)
+                {
+                    case MainMenu.TodaysSummary:
+                        this.GetTodaysSummary();
+                        break;
 
-                case MainMenu.LogActivityTab:
-                    this.RecordNewActivity();
-                    break;
+                    case MainMenu.LogActivityTab:
+                        this.RecordNewActivity();
+                        break;
 
-                case MainMenu.TrendsTab:
-                    break;
+                    case MainMenu.HistoryTab:
+                        break;
+
+                    case MainMenu.TrendsTab:
+                        break;
+                }
+
+                Thread.Sleep(2000);
+                Console.Clear();
             }
         }
 
@@ -53,12 +62,26 @@ namespace Personal_Fitness_Health_Tracker.Controller
                 Value = this._view.GetActivityValue(),
             };
 
+            if (! this._activityService.ValidateActivityValue(newActivity.Type, newActivity.Value))
+            {
+                this._view.DisplayInvalidInputValue(newActivity.Type);
+                return;
+            }
+
             this._view.DisplayHealthStatus(this._activityService.RecordNew(newActivity));
         }
 
         public void GetTodaysSummary()
         {
-            this._activityService.GetTodays();
+            List<GetActivityInfoDTO> logs =  this._activityService.Get(DateTime.Today);
+            if (logs == null || logs.Count == 0)
+            {
+                this._view.DisplayEmpty();
+            }
+            else
+            {
+                this._view.DisplayLogs(logs);
+            }
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace Personal_Fitness_Health_Tracker.Views
 {
     using Personal_Fitness_Health_Tracker.Enums;
+    using Personal_Fitness_Health_Tracker.Models.DTOs;
     using Spectre.Console;
     using System.Globalization;
 
@@ -29,12 +30,34 @@ namespace Personal_Fitness_Health_Tracker.Views
             }
         }
 
+        public void DisplayEmpty()
+        {
+            AnsiConsole.MarkupLine("[yellow]No Activity Logs Found[/]");
+        }
+            
+        public void DisplayLogs(List<GetActivityInfoDTO> logs)
+        {
+            var table = new Table();
+
+            table.AddColumn("Name"); 
+            table.AddColumn("Type");
+            table.AddColumn("LoggedAt");
+            table.AddColumn("Value");
+
+            foreach (GetActivityInfoDTO log in logs)
+            {
+                table.AddRow(log.Name, log.Type.ToString(), log.LoggedAt.ToString(), log.Value.ToString() + this.DisplayMetrics(log.Type));
+            }
+
+            AnsiConsole.Write(table);
+        }
+
         public MainMenu GetMenuOption()
         {
             MainMenu choice = AnsiConsole.Prompt(
                     new SelectionPrompt<MainMenu>()
                     .Title("Select tab")
-                    .AddChoices(MainMenu.LogActivityTab, MainMenu.HistoryTab, MainMenu.TrendsTab));
+                    .AddChoices(MainMenu.TodaysSummary, MainMenu.LogActivityTab, MainMenu.HistoryTab, MainMenu.TrendsTab));
 
             return choice;
         }
@@ -80,6 +103,56 @@ namespace Personal_Fitness_Health_Tracker.Views
             }
 
             return parsedInput;
+        }
+
+        public void DisplayInvalidInputValue(ActivityType type)
+        {
+            switch (type)
+            {
+                case ActivityType.StepsWalked:
+                    AnsiConsole.MarkupLine("[yellow]Invalid Input: Value must be greater than zero[/]");
+                    break;
+
+                case ActivityType.Sleep:
+                    AnsiConsole.MarkupLine("[yellow]Invalid Input: Valid Range (0 to 24)[/]");
+                    break;
+
+                case ActivityType.WaterIntake:
+                    AnsiConsole.MarkupLine("[yellow]Invalid Input: Valid Range (0 to 10)[/]");
+                    break;
+
+                case ActivityType.BodyWeight:
+                    AnsiConsole.MarkupLine("[yellow]Invalid Input: Valid Range (20 to 250)[/]");
+                    break;
+
+                case ActivityType.RestingHeartRate:
+                    AnsiConsole.MarkupLine("[yellow]Invalid Input: Valid Range (20 to 150)[/]");
+                    break;
+            }
+        }
+
+        public string DisplayMetrics(ActivityType type)
+        {
+            switch (type)
+            {
+                case ActivityType.StepsWalked:
+                    return "steps";
+
+                case ActivityType.Sleep:
+                    return "hours";
+
+                case ActivityType.WaterIntake:
+                    return "litres";
+
+                case ActivityType.BodyWeight:
+                    return "kg";
+
+                case ActivityType.RestingHeartRate:
+                    return "bpm";
+
+                default:
+                    return string.Empty;
+            }
         }
     }
 }

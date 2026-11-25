@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace Personal_Fitness_Health_Tracker.Enums
 {
-    internal class ActivityType
+    internal enum MainMenu
     {
+        LogActivityTab,
+        HistoryTab,
+        TrendsTab,
     }
 }

@@ -39,7 +39,7 @@ namespace Personal_Fitness_Health_Tracker.Views
 
         public void DisplayEmpty()
         {
-            AnsiConsole.MarkupLine(":warning: [yellow]No Activity Logs Found[/]");
+            AnsiConsole.MarkupLine("[yellow]No Activity Logs Found[/]");
         }
             
         public void DisplayLogs(List<GetActivityInfoDTO> logs)
@@ -63,7 +63,8 @@ namespace Personal_Fitness_Health_Tracker.Views
 
         public void DisplayPause()
         {
-            Console.WriteLine("Returning Back to Main Menu...");
+            Console.WriteLine("Press Any Key to Continue");
+            Console.ReadLine();
         }
 
         public void DisplayTodaysSummaryHeader()
@@ -75,12 +76,17 @@ namespace Personal_Fitness_Health_Tracker.Views
             AnsiConsole.MarkupLine("[yellow]Upcoming Feature! Under implementation[/]");
         }
 
+        public void DisplayExportSuccess()
+        {
+            AnsiConsole.MarkupLine("[green]Export successful! Check your \'Downloads\'![/]");
+        }
+
         public MainMenu GetMenuOption()
         {
             MainMenu choice = AnsiConsole.Prompt(
                     new SelectionPrompt<MainMenu>()
                     .Title("[yellow]Choose an option[/]")
-                    .AddChoices(MainMenu.TodaysSummary, MainMenu.LogActivityTab, MainMenu.HistoryTab, MainMenu.TrendsTab));
+                    .AddChoices(MainMenu.TodaysSummary, MainMenu.LogActivityTab, MainMenu.HistoryTab, MainMenu.ExportToCSV));
 
             return choice;
         }

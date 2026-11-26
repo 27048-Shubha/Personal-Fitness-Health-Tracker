@@ -43,13 +43,12 @@ namespace Personal_Fitness_Health_Tracker.Controller
                         this._view.DisplayUpcomingFeature();
                         break;
 
-                    case MainMenu.TrendsTab:
-                        this._view.DisplayUpcomingFeature();
+                    case MainMenu.ExportToCSV:
+                        this.ExportAsCSV();
                         break;
                 }
 
                 this._view.DisplayPause();
-                Thread.Sleep(3000);
                 Console.Clear();
             }
         }
@@ -89,6 +88,13 @@ namespace Personal_Fitness_Health_Tracker.Controller
             {
                 this._view.DisplayLogs(logs);
             }
+        }
+
+
+        public void ExportAsCSV()
+        {
+            this._activityService.ExportToCSV();
+            this._view.DisplayExportSuccess();
         }
     }
 }

@@ -14,9 +14,11 @@ namespace Personal_Fitness_Health_Tracker.Services
 
     internal class ActivityService
     {
+        private readonly CSVExportService _csvExportService;
         private readonly ActivityRepository _activityRepository;
-        internal ActivityService(ActivityRepository activityRepository)
+        internal ActivityService(CSVExportService csvExportService, ActivityRepository activityRepository)
         {
+            this._csvExportService = csvExportService;
             this._activityRepository = activityRepository;
         }
 
@@ -74,7 +76,7 @@ namespace Personal_Fitness_Health_Tracker.Services
         {
             DateTime startOfDay = DateTime.Today;
             DateTime endOfDay = startOfDay.AddDays(1);
-            List < GetActivityInfoDTO >  logs = this.Get().FindAll(log => (dateTime >= startOfDay && dateTime <= endOfDay));
+            List < GetActivityInfoDTO >  logs = this.Get().FindAll(log => (log.LoggedAt >= startOfDay && log.LoggedAt <= endOfDay));
             return logs;
         }
 
@@ -105,6 +107,11 @@ namespace Personal_Fitness_Health_Tracker.Services
             }
 
             return activity;
+        }
+
+        public void ExportToCSV()
+        {
+            this._csvExportService.ExportToCSV(this.Get());
         }
     }
 }

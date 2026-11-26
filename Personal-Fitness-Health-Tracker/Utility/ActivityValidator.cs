@@ -13,6 +13,7 @@ namespace Personal_Fitness_Health_Tracker.Utility
         public static HealthStatus ValidateActivityRange(ActivityType activtiyType, decimal value)
         {
             (decimal minRange, decimal maxRange) = GetMinMaxRange(activtiyType);
+            
             if (value < minRange || value  > maxRange)
             {
                 return HealthStatus.NeedsAttention;

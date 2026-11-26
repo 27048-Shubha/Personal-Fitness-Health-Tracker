@@ -25,40 +25,70 @@ namespace Personal_Fitness_Health_Tracker.Controller
 
         public void RunMainMenu()
         {
-            MainMenu type = this._view.GetMenuOption();
-
-            switch (type)
+            this._view.DisplayHeader();
+            while (true)
             {
-                case MainMenu.HistoryTab:
-                    break;
+                MainMenu type = this._view.GetMenuOption();
+                switch (type)
+                {
+                    case MainMenu.TodaysSummary:
+                        this.GetTodaysSummary();
+                        break;
 
-                case MainMenu.LogActivityTab:
-                    this.RecordNewActivity();
-                    break;
+                    case MainMenu.LogActivityTab:
+                        this.RecordNewActivity();
+                        break;
 
-                case MainMenu.TrendsTab:
-                    break;
+                    case MainMenu.HistoryTab:
+                        this._view.DisplayUpcomingFeature();
+                        break;
+
+                    case MainMenu.TrendsTab:
+                        this._view.DisplayUpcomingFeature();
+                        break;
+                }
+
+                this._view.DisplayPause();
+                Thread.Sleep(3000);
+                Console.Clear();
             }
         }
 
         public void RecordNewActivity()
         {
             ActivityType type = this._view.GetActivity();
+
+            this._view.DisplayActivityRule(type);
             AddActivityDTO newActivity = new AddActivityDTO
             {
                 UserId = SessionHandler.CurrentUser.Id,
-                Name = this._view.GetActivityName(),
-                LoggedAt = this._view.GetActivityTime(),
+                Name = this._view.GetActivityName(type),
+                LoggedAt = this._view.GetActivityTime(type),
                 Type = type,
-                Value = this._view.GetActivityValue(),
+                Value = this._view.GetActivityValue(type),
             };
+
+            if (! this._activityService.ValidateActivityValue(newActivity.Type, newActivity.Value))
+            {
+                this._view.DisplayInvalidInputValue(newActivity.Type);
+                return;
+            }
 
             this._view.DisplayHealthStatus(this._activityService.RecordNew(newActivity));
         }
 
         public void GetTodaysSummary()
         {
-            this._activityService.GetTodays();
+            this._view.DisplayTodaysSummaryHeader();
+            List<GetActivityInfoDTO> logs =  this._activityService.Get(DateTime.Today);
+            if (logs == null || logs.Count == 0)
+            {
+                this._view.DisplayEmpty();
+            }
+            else
+            {
+                this._view.DisplayLogs(logs);
+            }
         }
     }
 }

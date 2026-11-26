@@ -34,7 +34,77 @@ namespace Personal_Fitness_Health_Tracker.Services
 
             this._activityRepository.Add(activity);
 
-            return ActivityValidator.ValidateActivityRange(activity.Type,activity.Value);
+            decimal validationValue;
+            if (activityDTO.Type == ActivityType.BodyWeight)
+            {
+                SessionHandler.CurrentUser.Weight = activityDTO.Value;
+                validationValue = (SessionHandler.CurrentUser.Weight ?? activity.Value) / (SessionHandler.CurrentUser.Height * SessionHandler.CurrentUser.Height);
+            }
+
+            validationValue = activity.Value;
+
+            return ActivityValidator.ValidateActivityRange(activity.Type, validationValue);
+        }
+
+        public bool ValidateActivityValue(ActivityType activityType, decimal activityValue)
+        {
+            switch (activityType)
+            {
+                case ActivityType.StepsWalked:
+                    return (activityValue > 0);
+
+                case ActivityType.Sleep:
+                    return (activityValue >= 0 && activityValue <= 24);
+
+                case ActivityType.WaterIntake:
+                    return (activityValue >= 0 && activityValue <= 10);
+
+                case ActivityType.BodyWeight:
+                    return (activityValue >= 20 && activityValue <= 250);
+
+                case ActivityType.RestingHeartRate:
+                    return (activityValue > 20 && activityValue < 150);
+
+                default:
+                    return false;
+            }
+        }
+
+        public List<GetActivityInfoDTO> Get(DateTime dateTime)
+        {
+            DateTime startOfDay = DateTime.Today;
+            DateTime endOfDay = startOfDay.AddDays(1);
+            List < GetActivityInfoDTO >  logs = this.Get().FindAll(log => (dateTime >= startOfDay && dateTime <= endOfDay));
+            return logs;
+        }
+
+        public List<GetActivityInfoDTO> Get()
+        {
+            return this.MapToDTO(this._activityRepository.Get().FindAll(log => log.UserId == SessionHandler.CurrentUser.Id));
+        }
+
+        public List<GetActivityInfoDTO> MapToDTO(List<ActivityLog> logs)
+        {
+            if (logs == null)
+            {
+                return null;
+            }
+
+            List<GetActivityInfoDTO> activity = new();
+            foreach(ActivityLog log in logs)
+            {
+                activity.Add(
+                    new GetActivityInfoDTO
+                    {
+                        Name = log.Name,
+                        LoggedAt = log.LoggedAt,
+                        Type = log.Type,
+                        Value = log.Value,
+                    }
+                );
+            }
+
+            return activity;
         }
     }
 }

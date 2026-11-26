@@ -120,7 +120,7 @@ namespace Personal_Fitness_Health_Tracker.Views
         public DateTime GetActivityTime(ActivityType type)
         {
             string dateTimeFormat = "dd/MM/yyyy HH:mm";
-            string name = AnsiConsole.Ask<string>($"({type.ToString()}) Enter log time: (FORMAT: {dateTimeFormat}) ");
+            string name = AnsiConsole.Ask<string>($"({type.ToString()}) Enter log time: ({dateTimeFormat}) ");
             DateTime parsedInput;
 
             while (! DateTime.TryParseExact(name, dateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedInput))

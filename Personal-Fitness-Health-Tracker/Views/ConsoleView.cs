@@ -85,21 +85,60 @@ namespace Personal_Fitness_Health_Tracker.Views
             return choice;
         }
 
-        public string GetActivityName()
+        public void DisplayActivityRule(ActivityType type)
         {
-            string name = AnsiConsole.Ask<string>("Enter log name: ");
+            switch (type)
+            {
+                case ActivityType.StepsWalked:
+                    AnsiConsole.MarkupLine($"RULE: [yellow]{rulesForStepsWalked}[/]");
+                    break;
+
+                case ActivityType.Sleep:
+                    AnsiConsole.MarkupLine($"RULE: [yellow]{rulesForHoursSlept}[/]");
+                    break;
+
+                case ActivityType.WaterIntake:
+                    AnsiConsole.MarkupLine($"RULE: [yellow]{rulesForWaterIntake}[/]");
+                    break;
+
+                case ActivityType.BodyWeight:
+                    AnsiConsole.MarkupLine($"RULE: [yellow]{rulesForWeight}[/]");
+                    break;
+
+                case ActivityType.RestingHeartRate:
+                    AnsiConsole.MarkupLine($"RULE: [yellow]{rulesForHeartRate}[/]");
+                    break;
+            }
+        }
+
+        public string GetActivityName(ActivityType type)
+        {
+            string name = AnsiConsole.Ask<string>($"({type.ToString()}) Enter log name: ");
             return name;
         }
 
-        public DateTime GetActivityTime()
+        public DateTime GetActivityTime(ActivityType type)
         {
             string dateTimeFormat = "dd/MM/yyyy HH:mm";
-            string name = AnsiConsole.Ask<string>($"Enter log time: (FORMAT: {dateTimeFormat}) ");
+            string name = AnsiConsole.Ask<string>($"({type.ToString()}) Enter log time: (FORMAT: {dateTimeFormat}) ");
             DateTime parsedInput;
 
             while (! DateTime.TryParseExact(name, dateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedInput))
             {
                 name = AnsiConsole.Ask<string>($"Invalid format for date time! Valid format: {dateTimeFormat}");
+            }
+
+            return parsedInput;
+        }
+
+        public decimal GetActivityValue(ActivityType type)
+        {
+            string name = AnsiConsole.Ask<string>($"({type.ToString()}) Enter value recorded: ");
+            Decimal parsedInput;
+
+            while (!Decimal.TryParse(name, out parsedInput))
+            {
+                name = AnsiConsole.Ask<string>($"Invalid value type received! Kindly enter numeric values only");
             }
 
             return parsedInput;
@@ -113,19 +152,6 @@ namespace Personal_Fitness_Health_Tracker.Views
                     .AddChoices(ActivityType.StepsWalked, ActivityType.Sleep, ActivityType.WaterIntake, ActivityType.BodyWeight, ActivityType.RestingHeartRate));
 
             return choice;
-        }
-
-        public decimal GetActivityValue()
-        {
-            string name = AnsiConsole.Ask<string>("Enter value recorded: ");
-            Decimal parsedInput;
-
-            while (!Decimal.TryParse(name, out parsedInput))
-            {
-                name = AnsiConsole.Ask<string>($"Invalid value type received! Kindly enter numeric values only");
-            }
-
-            return parsedInput;
         }
 
         public void DisplayInvalidInputValue(ActivityType type)

@@ -57,13 +57,15 @@ namespace Personal_Fitness_Health_Tracker.Controller
         public void RecordNewActivity()
         {
             ActivityType type = this._view.GetActivity();
+
+            this._view.DisplayActivityRule(type);
             AddActivityDTO newActivity = new AddActivityDTO
             {
                 UserId = SessionHandler.CurrentUser.Id,
-                Name = this._view.GetActivityName(),
-                LoggedAt = this._view.GetActivityTime(),
+                Name = this._view.GetActivityName(type),
+                LoggedAt = this._view.GetActivityTime(type),
                 Type = type,
-                Value = this._view.GetActivityValue(),
+                Value = this._view.GetActivityValue(type),
             };
 
             if (! this._activityService.ValidateActivityValue(newActivity.Type, newActivity.Value))

@@ -2,8 +2,8 @@
 
 **Project Name:** Personal Fitness and Health Tracker  
 **Author:** Shubha Shree Sathish  
-**Date:** 24/11/2026  
-**Version:** 1.0  
+**Date:** 26/11/2026  
+**Version:** 2.0  
 **Status:** In Review
 
 ---

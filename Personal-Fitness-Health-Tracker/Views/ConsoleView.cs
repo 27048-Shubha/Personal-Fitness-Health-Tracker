@@ -13,9 +13,16 @@ namespace Personal_Fitness_Health_Tracker.Views
 
     internal class ConsoleView
     {
-        public void DisplayMainMenu()
+        private string rulesForStepsWalked = "Value must be greater than zero";
+        private string rulesForHoursSlept = "Valid Range (0 to 24)[/]";
+        private string rulesForWaterIntake = "Valid Range (0 to 10)";
+        private string rulesForWeight = "Valid Range (20 to 250)";
+        private string rulesForHeartRate = "Valid Range (20 to 150)";
+
+        public void DisplayHeader()
         {
-            AnsiConsole.MarkupLine("[blue]Welcome to Personal Fitness & Health Tracker[/]");
+            AnsiConsole.MarkupLine("[blue] Personal Fitness & Health Tracker[/]\n");
+            AnsiConsole.MarkupLine("[blue] -------------Welcome-------------[/]\n");
         }
 
         public void DisplayHealthStatus(HealthStatus status)
@@ -32,17 +39,19 @@ namespace Personal_Fitness_Health_Tracker.Views
 
         public void DisplayEmpty()
         {
-            AnsiConsole.MarkupLine("[yellow]No Activity Logs Found[/]");
+            AnsiConsole.MarkupLine(":warning: [yellow]No Activity Logs Found[/]");
         }
             
         public void DisplayLogs(List<GetActivityInfoDTO> logs)
         {
             var table = new Table();
 
-            table.AddColumn("Name"); 
-            table.AddColumn("Type");
-            table.AddColumn("LoggedAt");
-            table.AddColumn("Value");
+            table.Title("[blue]Activity Logs[/]");
+
+            table.AddColumn("[yellow]Name[/]"); 
+            table.AddColumn("[yellow]Type[/]");
+            table.AddColumn("[yellow]LoggedAt[/]");
+            table.AddColumn("[yellow]Value[/]");
 
             foreach (GetActivityInfoDTO log in logs)
             {
@@ -52,11 +61,25 @@ namespace Personal_Fitness_Health_Tracker.Views
             AnsiConsole.Write(table);
         }
 
+        public void DisplayPause()
+        {
+            Console.WriteLine("Returning Back to Main Menu...");
+        }
+
+        public void DisplayTodaysSummaryHeader()
+        {
+            AnsiConsole.MarkupLine("[bold]Today's Activities[/]");
+        }
+        public void DisplayUpcomingFeature()
+        {
+            AnsiConsole.MarkupLine("[yellow]Upcoming Feature! Under implementation[/]");
+        }
+
         public MainMenu GetMenuOption()
         {
             MainMenu choice = AnsiConsole.Prompt(
                     new SelectionPrompt<MainMenu>()
-                    .Title("Select tab")
+                    .Title("[yellow]Choose an option[/]")
                     .AddChoices(MainMenu.TodaysSummary, MainMenu.LogActivityTab, MainMenu.HistoryTab, MainMenu.TrendsTab));
 
             return choice;

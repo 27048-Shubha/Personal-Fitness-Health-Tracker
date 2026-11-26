@@ -72,8 +72,9 @@ namespace Personal_Fitness_Health_Tracker.Services
 
         public List<GetActivityInfoDTO> Get(DateTime dateTime)
         {
-            List < GetActivityInfoDTO >  logs = this.Get().FindAll(log => log.LoggedAt == DateTime.Today);
-            Console.WriteLine(logs.Capacity);
+            DateTime startOfDay = DateTime.Today;
+            DateTime endOfDay = startOfDay.AddDays(1);
+            List < GetActivityInfoDTO >  logs = this.Get().FindAll(log => (dateTime >= startOfDay && dateTime <= endOfDay));
             return logs;
         }
 

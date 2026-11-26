@@ -25,6 +25,7 @@ namespace Personal_Fitness_Health_Tracker.Controller
 
         public void RunMainMenu()
         {
+            this._view.DisplayHeader();
             while (true)
             {
                 MainMenu type = this._view.GetMenuOption();
@@ -39,13 +40,16 @@ namespace Personal_Fitness_Health_Tracker.Controller
                         break;
 
                     case MainMenu.HistoryTab:
+                        this._view.DisplayUpcomingFeature();
                         break;
 
                     case MainMenu.TrendsTab:
+                        this._view.DisplayUpcomingFeature();
                         break;
                 }
 
-                Thread.Sleep(2000);
+                this._view.DisplayPause();
+                Thread.Sleep(3000);
                 Console.Clear();
             }
         }
@@ -73,6 +77,7 @@ namespace Personal_Fitness_Health_Tracker.Controller
 
         public void GetTodaysSummary()
         {
+            this._view.DisplayTodaysSummaryHeader();
             List<GetActivityInfoDTO> logs =  this._activityService.Get(DateTime.Today);
             if (logs == null || logs.Count == 0)
             {

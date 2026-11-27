@@ -1,17 +1,11 @@
 ﻿using Personal_Fitness_Health_Tracker.Enums;
 using Personal_Fitness_Health_Tracker.Utility;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Personal_Fitness_Health_Tracker.Services
 {
     using Personal_Fitness_Health_Tracker.Models;
     using Personal_Fitness_Health_Tracker.Models.DTOs;
     using Personal_Fitness_Health_Tracker.Repositories;
-    using System.Runtime.CompilerServices;
 
     internal class ActivityService
     {
@@ -40,13 +34,15 @@ namespace Personal_Fitness_Health_Tracker.Services
             this._activityRepository.Add(activity);
 
             decimal validationValue;
-            if (activityDTO.Type == ActivityType.BodyWeight)
+            if (activityDTO.Type == ActivityType.BMI)
             {
                 SessionHandler.CurrentUser.Weight = activityDTO.Value;
                 validationValue = (SessionHandler.CurrentUser.Weight ?? activity.Value) / (SessionHandler.CurrentUser.Height * SessionHandler.CurrentUser.Height);
             }
-
-            validationValue = activity.Value;
+            else
+            {
+                validationValue = activity.Value;
+            }
 
             return ActivityValidator.ValidateActivityRange(activity.Type, validationValue);
         }
@@ -55,7 +51,7 @@ namespace Personal_Fitness_Health_Tracker.Services
         {
             DateTime startOfDay = dateTime;
             DateTime endOfDay = startOfDay.AddDays(1);
-            List<GetActivityInfoDTO> logs = this.Get().FindAll(log => (log.LoggedAt >= startOfDay && log.LoggedAt <= endOfDay));
+            List<GetActivityInfoDTO> logs = this.Get().FindAll(log => (log.LoggedAt >= startOfDay && log.LoggedAt < endOfDay));
             return logs;
         }
 
@@ -84,7 +80,7 @@ namespace Personal_Fitness_Health_Tracker.Services
 
             foreach (GetActivityInfoDTO log in logs)
             {
-                if ((log.Name.Contains(textToSearch))
+                if ((log.Name.Contains(textToSearch, StringComparison.OrdinalIgnoreCase))
                     || (log.LoggedAt.ToString().Contains(textToSearch))
                     || (log.Type.ToString().Contains(textToSearch))
                     || (log.Value.ToString().Contains(textToSearch)))
@@ -132,9 +128,14 @@ namespace Personal_Fitness_Health_Tracker.Services
             return this._streakService.ValidateActivityValue(activityType, activityValue);
         }
 
+        public bool ValidateDate(DateTime date)
+        {
+            return date <= DateTime.Now;
+        }
+
         public Dictionary<ActivityType, int> GetStreakInfo()
         {
-            return this._streakService.GetStreakInfo(this.GetActivityLog(DateTime.Today));
+            return this._streakService.GetStreakInfo(this._activityRepository.Get());
         }
 
         public void ExportToCSV()
@@ -147,18 +148,33 @@ namespace Personal_Fitness_Health_Tracker.Services
             this._activityRepository.Delete(log.Id);
         }
 
-        public void Update(GetActivityInfoDTO log)
+        public bool Update(GetActivityInfoDTO log)
         {
             ActivityLog? logToBeUpdated = this._activityRepository.Find(log.Id);
 
+            if (logToBeUpdated == null)
+            {
+                return false;
+            }
+
+            if (!this.ValidateDate(log.LoggedAt))
+            {
+                return false;
+            }
+
+            if (!this.ValidateActivityValue(log.Type, log.Value))
+            {
+                return false;
+            }
+
             logToBeUpdated.Name = log.Name;
+            logToBeUpdated.Type = log.Type;
             logToBeUpdated.LoggedAt = log.LoggedAt;
             logToBeUpdated.Value = log.Value;
 
-            if (logToBeUpdated != null)
-            {
-                this._activityRepository.Update(logToBeUpdated, log.Id);
-            }
+            this._activityRepository.Update(logToBeUpdated, log.Id);
+
+            return true;
         }
     }
 }

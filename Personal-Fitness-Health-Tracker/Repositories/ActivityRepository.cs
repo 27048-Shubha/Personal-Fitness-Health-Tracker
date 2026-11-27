@@ -1,11 +1,5 @@
 ﻿using Personal_Fitness_Health_Tracker.Models;
 using Personal_Fitness_Health_Tracker.Utility;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Personal_Fitness_Health_Tracker.Repositories
 {
@@ -21,7 +15,8 @@ namespace Personal_Fitness_Health_Tracker.Repositories
 
         public void Add(ActivityLog newLog)
         {
-            this._logs.Add(newLog);
+            this.Get();
+            _logs.Add(newLog);
             this.Write();
         }
 
@@ -33,6 +28,7 @@ namespace Personal_Fitness_Health_Tracker.Repositories
 
         public ActivityLog? Find(Guid id)
         {
+            this.Get();
             return this._logs.Find(log => log.Id == id);
         }
 

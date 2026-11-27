@@ -1,12 +1,5 @@
 ﻿using Personal_Fitness_Health_Tracker.Enums;
 using Personal_Fitness_Health_Tracker.Models;
-using Personal_Fitness_Health_Tracker.Models.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Personal_Fitness_Health_Tracker.Services
 {
@@ -17,7 +10,7 @@ namespace Personal_Fitness_Health_Tracker.Services
             Dictionary<ActivityType, int> streakInfo = new();
             streakInfo.Add(ActivityType.StepsWalked, this.CalculateIndividualActivitytreak(logs, ActivityType.StepsWalked));
             streakInfo.Add(ActivityType.WaterIntake, this.CalculateIndividualActivitytreak(logs, ActivityType.WaterIntake));
-            streakInfo.Add(ActivityType.BodyWeight, this.CalculateIndividualActivitytreak(logs, ActivityType.BodyWeight));
+            streakInfo.Add(ActivityType.BMI, this.CalculateIndividualActivitytreak(logs, ActivityType.BMI));
             streakInfo.Add(ActivityType.Sleep, this.CalculateIndividualActivitytreak(logs, ActivityType.Sleep));
             streakInfo.Add(ActivityType.RestingHeartRate, this.CalculateIndividualActivitytreak(logs, ActivityType.RestingHeartRate));
 
@@ -27,18 +20,21 @@ namespace Personal_Fitness_Health_Tracker.Services
         public int CalculateIndividualActivitytreak(List<ActivityLog> logs, ActivityType activityType)
         {
             DateTime current = DateTime.Today;
+            // Console.WriteLine($"{current}");
             int count = 0;
 
             while (true)
             {
-                bool isExists = logs.Any(log => log.LoggedAt == current);
+                bool isExists = logs.Any(log => log.LoggedAt.Date == current.Date && log.Type == activityType);
 
                 if (!isExists)
                 {
                     return count;
                 }
 
-                HealthStatus status = this.ValidateActivityValue(activityType, this.EvaluateHealthForTheDay(logs, activityType)) == true
+                List<ActivityLog> dayLogs = logs.Where(log => log.LoggedAt.Date == current.Date && log.Type == activityType).ToList();
+
+                HealthStatus status = this.ValidateActivityValue(activityType, this.EvaluateHealthForTheDay(dayLogs, activityType)) == true
                     ? HealthStatus.Healthy
                     : HealthStatus.NeedsAttention;
 
@@ -66,7 +62,7 @@ namespace Personal_Fitness_Health_Tracker.Services
                 case ActivityType.WaterIntake:
                     return (activityValue >= 0 && activityValue <= 10);
 
-                case ActivityType.BodyWeight:
+                case ActivityType.BMI:
                     return (activityValue >= 20 && activityValue <= 250);
 
                 case ActivityType.RestingHeartRate:
@@ -82,7 +78,6 @@ namespace Personal_Fitness_Health_Tracker.Services
             return this.EvaluateHealthForTheDay(logs, activityType);
         }
 
-        //Steps walked – Total for the day
         public decimal EvaluateHealthForTheDay(List<ActivityLog> logs, ActivityType activityType)
         {
             switch (activityType)
@@ -93,14 +88,14 @@ namespace Personal_Fitness_Health_Tracker.Services
                 case ActivityType.WaterIntake:
                     return logs.Sum(log => log.Value);
 
-                case ActivityType.BodyWeight:
-                    return logs.Last().Value;
+                case ActivityType.BMI:
+                    return logs.LastOrDefault()?.Value ?? 0;
 
                 case ActivityType.Sleep:
                     return logs.Sum(log => log.Value);
 
                 case ActivityType.RestingHeartRate:
-                    return logs.Average(log => log.Value);
+                    return logs.Any() ? logs.Average(log => log.Value) : 0;
 
                 default:
                     return 0;

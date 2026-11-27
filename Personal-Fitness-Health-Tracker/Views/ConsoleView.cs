@@ -1,31 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using Personal_Fitness_Health_Tracker.Enums;
+using Personal_Fitness_Health_Tracker.Models.DTOs;
+using Spectre.Console;
+using System.Globalization;
 namespace Personal_Fitness_Health_Tracker.Views
 {
-    using Personal_Fitness_Health_Tracker.Enums;
-    using Personal_Fitness_Health_Tracker.Models.DTOs;
-    using Spectre.Console;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.IO;
-    using static System.Runtime.InteropServices.JavaScript.JSType;
-
     internal class ConsoleView
     {
         private string rulesForStepsWalked = "Value must be greater than zero";
-        private string rulesForHoursSlept = "Valid Range (0 to 24)[/]";
-        private string rulesForWaterIntake = "Valid Range (0 to 10)";
-        private string rulesForWeight = "Valid Range (20 to 250)";
-        private string rulesForHeartRate = "Valid Range (20 to 150)";
+        private string rulesForHoursSlept = "Valid Range : 0 HR to 24 HRS";
+        private string rulesForWaterIntake = "Valid Range 0 L to 10 L";
+        private string rulesForWeight = "Valid Range 20 KG to 250 KG";
+        private string rulesForHeartRate = "Valid Range 20 BPM to 150 BPM";
+
 
         public void DisplayHeader()
         {
-            AnsiConsole.MarkupLine("[blue] Personal Fitness & Health Tracker[/]\n");
             AnsiConsole.MarkupLine("[blue] -------------Welcome-------------[/]\n");
+            AnsiConsole.MarkupLine("[blue] Personal Fitness & Health Tracker[/]\n");
         }
 
         public void DisplayHealthStatus(HealthStatus status)
@@ -44,7 +35,13 @@ namespace Personal_Fitness_Health_Tracker.Views
         {
             AnsiConsole.MarkupLine("[yellow]No Activity Logs Found[/]");
         }
-            
+
+        public void DisplayMessage(string message)
+        {
+            Console.WriteLine($"message");
+        }
+
+
         public void DisplayLogs(List<GetActivityInfoDTO> logs)
         {
             var table = new Table();
@@ -53,13 +50,13 @@ namespace Personal_Fitness_Health_Tracker.Views
 
             table.AddColumn("[yellow]Name[/]"); 
             table.AddColumn("[yellow]Type[/]");
-            table.AddColumn("[yellow]LoggedAt[/]");
             table.AddColumn("[yellow]Value[/]");
-            table.AddColumn("[yellow]Health status for the day[/]");
+            table.AddColumn("[yellow]LoggedAt[/]");
+            // table.AddColumn("[yellow]Health status for the day[/]");
 
             foreach (GetActivityInfoDTO log in logs)
             {
-                table.AddRow(log.Name, log.Type.ToString(), log.LoggedAt.ToString(), log.Value.ToString() + this.DisplayMetrics(log.Type), log.Health.ToString());
+                table.AddRow(log.Name, log.Type.ToString(), string.Join(" ", log.Value.ToString(), this.DisplayMetrics(log.Type)), log.LoggedAt.ToString()); // log.Health.ToString());
             }
 
             AnsiConsole.Write(table);
@@ -68,7 +65,7 @@ namespace Personal_Fitness_Health_Tracker.Views
         public void DisplayPause()
         {
             Console.WriteLine("Press Any Key to Continue");
-            Console.ReadLine();
+            Console.ReadKey(true);
         }
 
         public void DisplayTodaysSummaryHeader()
@@ -82,26 +79,23 @@ namespace Personal_Fitness_Health_Tracker.Views
 
         public void DisplayExportSuccess()
         {
-            AnsiConsole.MarkupLine("[green]Export successful! Check your \'Downloads\'![/]");
+            AnsiConsole.MarkupLine("[green]Export successful![/]");
         }
 
         public void DisplayStreakInfo(Dictionary<ActivityType, int> streakInfo)
         {
-            var maxStreak = streakInfo.Values.Max();
-            const int barWidth = 10;
+            if (!streakInfo.Any())
+            {
+                return;
+            }
 
+            AnsiConsole.MarkupLine("[yellow]Current streak![/]");
             foreach (var (activity, streak) in streakInfo)
             {
-                var filled = maxStreak == 0
-                    ? 0
-                    : (int)Math.Round((double)streak / maxStreak * barWidth);
-
-                var bar = new string('█', filled) +
-                          new string('░', barWidth - filled);
-
-                Console.WriteLine($"{activity}");
-                Console.WriteLine($"{bar} {streak}");
+                Console.WriteLine($"{activity}: {streak} days");
             }
+
+            Console.WriteLine("\n");
         }
 
         public MainMenu GetMenuOption()
@@ -145,7 +139,7 @@ namespace Personal_Fitness_Health_Tracker.Views
             return log;
         }
 
-        public GetActivityInfoDTO GetUpatedLog(GetActivityInfoDTO log)
+        public GetActivityInfoDTO GetUpdatedLog(GetActivityInfoDTO log)
         {
             log.Name = AnsiConsole.Prompt(
                 new TextPrompt<string>($"Name:")
@@ -154,6 +148,7 @@ namespace Personal_Fitness_Health_Tracker.Views
             log.Value = AnsiConsole.Prompt(
                 new TextPrompt<decimal>($"Value:")
                 .DefaultValue(log.Value));
+
 
             log.LoggedAt = AnsiConsole.Prompt(
                 new TextPrompt<DateTime>($"Time:")
@@ -178,7 +173,7 @@ namespace Personal_Fitness_Health_Tracker.Views
                     AnsiConsole.MarkupLine($"RULE: [yellow]{rulesForWaterIntake}[/]");
                     break;
 
-                case ActivityType.BodyWeight:
+                case ActivityType.BMI:
                     AnsiConsole.MarkupLine($"RULE: [yellow]{rulesForWeight}[/]");
                     break;
 
@@ -188,10 +183,15 @@ namespace Personal_Fitness_Health_Tracker.Views
             }
         }
 
+        public void DisplayInvalidDate()
+        {
+            AnsiConsole.MarkupLine($"RULE: [yellow]Future dates not allowed![/]");
+        }
+
         public string GetActivityName(ActivityType type)
         {
             string name = AnsiConsole.Ask<string>($"({type.ToString()}) Enter log name: ");
-            return name;
+            return name.Trim();
         }
 
         public string GetString()
@@ -230,7 +230,13 @@ namespace Personal_Fitness_Health_Tracker.Views
 
         public decimal GetActivityValue(ActivityType type)
         {
-            string name = AnsiConsole.Ask<string>($"({type.ToString()}) Enter value recorded: ");
+            string valueName = type.ToString();
+            if(type == ActivityType.BMI)
+            {
+                valueName = $"Weight";
+            }
+
+            string name = AnsiConsole.Ask<string>($"({valueName}) Enter value recorded: ");
             Decimal parsedInput;
 
             while (!Decimal.TryParse(name, out parsedInput))
@@ -246,7 +252,7 @@ namespace Personal_Fitness_Health_Tracker.Views
             ActivityType choice = AnsiConsole.Prompt(
                     new SelectionPrompt<ActivityType>()
                     .Title("Select activity type")
-                    .AddChoices(ActivityType.StepsWalked, ActivityType.Sleep, ActivityType.WaterIntake, ActivityType.BodyWeight, ActivityType.RestingHeartRate));
+                    .AddChoices(ActivityType.StepsWalked, ActivityType.Sleep, ActivityType.WaterIntake, ActivityType.BMI, ActivityType.RestingHeartRate));
 
             return choice;
         }
@@ -256,23 +262,23 @@ namespace Personal_Fitness_Health_Tracker.Views
             switch (type)
             {
                 case ActivityType.StepsWalked:
-                    AnsiConsole.MarkupLine("[yellow]Invalid Input: Value must be greater than zero[/]");
+                    AnsiConsole.MarkupLine($"[yellow]Invalid Input: {rulesForStepsWalked}[/]");
                     break;
 
                 case ActivityType.Sleep:
-                    AnsiConsole.MarkupLine("[yellow]Invalid Input: Valid Range (0 to 24)[/]");
+                    AnsiConsole.MarkupLine($"[yellow]Invalid Input: {rulesForHoursSlept}[/]");
                     break;
 
                 case ActivityType.WaterIntake:
-                    AnsiConsole.MarkupLine("[yellow]Invalid Input: Valid Range (0 to 10)[/]");
+                    AnsiConsole.MarkupLine($"[yellow]Invalid Input: {rulesForWaterIntake}[/]");
                     break;
 
-                case ActivityType.BodyWeight:
-                    AnsiConsole.MarkupLine("[yellow]Invalid Input: Valid Range (20 to 250)[/]");
+                case ActivityType.BMI:
+                    AnsiConsole.MarkupLine($"[yellow]Invalid Input: {rulesForWeight}[/]");
                     break;
 
                 case ActivityType.RestingHeartRate:
-                    AnsiConsole.MarkupLine("[yellow]Invalid Input: Valid Range (20 to 150)[/]");
+                    AnsiConsole.MarkupLine($"[yellow]Invalid Input: {rulesForHeartRate}[/]");
                     break;
             }
         }
@@ -290,7 +296,7 @@ namespace Personal_Fitness_Health_Tracker.Views
                 case ActivityType.WaterIntake:
                     return "litres";
 
-                case ActivityType.BodyWeight:
+                case ActivityType.BMI:
                     return "kg";
 
                 case ActivityType.RestingHeartRate:

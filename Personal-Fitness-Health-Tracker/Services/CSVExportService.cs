@@ -1,10 +1,5 @@
 ﻿using Personal_Fitness_Health_Tracker.Models.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace Personal_Fitness_Health_Tracker.Services
 {
@@ -23,7 +18,7 @@ namespace Personal_Fitness_Health_Tracker.Services
 
             foreach(GetActivityInfoDTO item in data)
             {
-                string row = string.Join(" ", item.Name,
+                string row = string.Join(",", item.Name,
                     item.Type.ToString(),
                     item.Value.ToString(),
                     item.LoggedAt.ToString());
@@ -36,15 +31,12 @@ namespace Personal_Fitness_Health_Tracker.Services
 
         public void DownloadCSV(string csvData)
         {
-            string downloadsFolder = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                    "Downloads");
+            string folderPath = Path.Combine( Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "FitnessTracker");
+            Directory.CreateDirectory(folderPath);
 
-            string filePath = Path.Combine(
-                downloadsFolder,
-                "ActivityReport.csv");
+            string filePath = Path.Combine( folderPath, $"ActivityReport_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
 
-            File.WriteAllText(filePath, csvData.ToString());
+            File.WriteAllText(filePath, csvData);
         }
     }
 }

@@ -1,13 +1,7 @@
 ﻿using Personal_Fitness_Health_Tracker.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Personal_Fitness_Health_Tracker.Utility
 {
-    using static Personal_Fitness_Health_Tracker.Utility.SessionHandler;
     internal static class ActivityValidator
     {
         public static HealthStatus ValidateActivityRange(ActivityType activtiyType, decimal value)
@@ -35,7 +29,7 @@ namespace Personal_Fitness_Health_Tracker.Utility
                 case ActivityType.WaterIntake:
                     return (3, 5);
 
-                case ActivityType.BodyWeight:
+                case ActivityType.BMI:
                     return (18, 25);
 
                 case ActivityType.RestingHeartRate:

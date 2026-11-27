@@ -1,18 +1,11 @@
-﻿using Personal_Fitness_Health_Tracker.Models.DTOs;
+﻿using Personal_Fitness_Health_Tracker.Enums;
+using Personal_Fitness_Health_Tracker.Models.DTOs;
 using Personal_Fitness_Health_Tracker.Services;
 using Personal_Fitness_Health_Tracker.Utility;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Personal_Fitness_Health_Tracker.Views;
 
 namespace Personal_Fitness_Health_Tracker.Controller
 {
-    using Personal_Fitness_Health_Tracker.Enums;
-    using Personal_Fitness_Health_Tracker.Views;
-
     internal class MainMenuController
     {
         private ActivityService _activityService;
@@ -48,6 +41,9 @@ namespace Personal_Fitness_Health_Tracker.Controller
                     case MainMenu.ExportToCSV:
                         this.ExportAsCSV();
                         break;
+
+                    case MainMenu.Exit:
+                        return;
                 }
 
                 this._view.DisplayPause();
@@ -58,22 +54,29 @@ namespace Personal_Fitness_Health_Tracker.Controller
         public void RecordNewActivity()
         {
             ActivityType type = this._view.GetActivity();
+            string name = this._view.GetActivityName(type);
+            DateTime loggedAt = this._view.GetActivityTime(type);
+            decimal value = this._view.GetActivityValue(type);
 
-            this._view.DisplayActivityRule(type);
+            while (!this._activityService.ValidateActivityValue(type, value))
+            {
+                this._view.DisplayInvalidInputValue(type);
+                value = this._view.GetActivityValue(type);
+            }
+
+            if (!this._activityService.ValidateDate(loggedAt))
+            {
+                this._view.DisplayInvalidDate();
+            }
+
             AddActivityDTO newActivity = new AddActivityDTO
             {
                 UserId = SessionHandler.CurrentUser.Id,
-                Name = this._view.GetActivityName(type),
-                LoggedAt = this._view.GetActivityTime(type),
+                Name = name,
+                LoggedAt = loggedAt,
                 Type = type,
-                Value = this._view.GetActivityValue(type),
+                Value = value,
             };
-
-            if (! this._activityService.ValidateActivityValue(newActivity.Type, newActivity.Value))
-            {
-                this._view.DisplayInvalidInputValue(newActivity.Type);
-                return;
-            }
 
             this._view.DisplayHealthStatus(this._activityService.RecordNew(newActivity));
         }
@@ -114,6 +117,9 @@ namespace Personal_Fitness_Health_Tracker.Controller
                 case ViewMenu.Date:
                     this.FilterByDate();
                     return;
+
+                case ViewMenu.Back:
+                    return;
             }
 
             this._view.DisplayPause();
@@ -139,6 +145,9 @@ namespace Personal_Fitness_Health_Tracker.Controller
 
                 case HistoryTab.Search:
                     this.SearchActivity();
+                    return;
+
+                case HistoryTab.Back:
                     return;
             }
 
@@ -222,8 +231,13 @@ namespace Personal_Fitness_Health_Tracker.Controller
             }
 
             GetActivityInfoDTO log = this._view.SelectActivity(logs);
-            log = this._view.GetUpatedLog(log);
-            this._activityService.Update(log);
+            log = this._view.GetUpdatedLog(log);
+
+            bool isUpdated = this._activityService.Update(log);
+            if (!isUpdated)
+            {
+                this._view.DisplayMessage("Invalid activity details.");
+            }
         }
 
         public void ExportAsCSV()

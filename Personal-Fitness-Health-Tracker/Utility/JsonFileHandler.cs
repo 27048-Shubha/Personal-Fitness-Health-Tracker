@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 
 namespace Personal_Fitness_Health_Tracker.Utility
 {
@@ -16,11 +11,16 @@ namespace Personal_Fitness_Health_Tracker.Utility
 
         public static string GetFilePath(string fileName)
         {
-            string filePath = Path.Combine(AppContext.BaseDirectory, fileName);
+            string folderPath = Path.Combine( Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "FitnessTracker");
+            string filePath = Path.Combine(folderPath, fileName);
+
+            Directory.CreateDirectory(folderPath);
+
             if (!isFileExists(filePath))
             {
                 File.WriteAllText(filePath, "[]");
             }
+
             return filePath;
         }
 

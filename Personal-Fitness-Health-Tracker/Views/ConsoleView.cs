@@ -109,7 +109,7 @@ namespace Personal_Fitness_Health_Tracker.Views
             MainMenu choice = AnsiConsole.Prompt(
                     new SelectionPrompt<MainMenu>()
                     .Title("[yellow]Choose an option[/]")
-                    .AddChoices(MainMenu.TodaysSummary, MainMenu.LogActivityTab, MainMenu.ViewLogs, MainMenu.SearchLogs, MainMenu.HistoryTab, MainMenu.ExportToCSV));
+                    .AddChoices(MainMenu.TodaysSummary, MainMenu.LogActivityTab, MainMenu.HistoryTab, MainMenu.ExportToCSV));
 
             return choice;
         }
@@ -122,6 +122,44 @@ namespace Personal_Fitness_Health_Tracker.Views
                     .AddChoices(ViewMenu.All, ViewMenu.Activity, ViewMenu.Date));
 
             return choice;
+        }
+
+        public HistoryTab GetHistoryTabMenu()
+        {
+            HistoryTab choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<HistoryTab>()
+                    .Title("[yellow]Choose an option[/]")
+                    .AddChoices(HistoryTab.Edit, HistoryTab.Delete, HistoryTab.View, HistoryTab.Search));
+
+            return choice;
+        }
+
+        public GetActivityInfoDTO SelectActivity(List<GetActivityInfoDTO> logs)
+        {
+            GetActivityInfoDTO log = AnsiConsole.Prompt(
+                    new SelectionPrompt<GetActivityInfoDTO>()
+                    .Title("[yellow]Choose one activity log[/]")
+                    .UseConverter(log => $"{log.Name} | {log.LoggedAt:dd-MMM-yyyy} | {log.Type} | {log.Value}")
+                    .AddChoices(logs));
+
+            return log;
+        }
+
+        public GetActivityInfoDTO GetUpatedLog(GetActivityInfoDTO log)
+        {
+            log.Name = AnsiConsole.Prompt(
+                new TextPrompt<string>($"Name:")
+                .DefaultValue(log.Name));
+
+            log.Value = AnsiConsole.Prompt(
+                new TextPrompt<decimal>($"Value:")
+                .DefaultValue(log.Value));
+
+            log.LoggedAt = AnsiConsole.Prompt(
+                new TextPrompt<DateTime>($"Time:")
+                .DefaultValue(log.LoggedAt));
+
+            return log;
         }
 
         public void DisplayActivityRule(ActivityType type)

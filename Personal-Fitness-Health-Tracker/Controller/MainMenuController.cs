@@ -41,16 +41,8 @@ namespace Personal_Fitness_Health_Tracker.Controller
                         this.RecordNewActivity();
                         break;
 
-                    case MainMenu.ViewLogs:
-                        this.RunViewMenu();
-                        break;
-
-                    case MainMenu.SearchLogs:
-                        this.SearchActivity();
-                        break;
-
                     case MainMenu.HistoryTab:
-                        this._view.DisplayUpcomingFeature();
+                        this.RunHistoryTabMenu();
                         break;
 
                     case MainMenu.ExportToCSV:
@@ -128,18 +120,43 @@ namespace Personal_Fitness_Health_Tracker.Controller
             Console.Clear();
         }
 
+        public void RunHistoryTabMenu()
+        {
+            HistoryTab type = this._view.GetHistoryTabMenu();
+            switch (type)
+            {
+                case HistoryTab.Edit:
+                    this.UpdateActivity();
+                    return;
+
+                case HistoryTab.Delete:
+                    this.DeleteActivity();
+                    return;
+
+                case HistoryTab.View:
+                    this.RunViewMenu();
+                    return;
+
+                case HistoryTab.Search:
+                    this.SearchActivity();
+                    return;
+            }
+
+            this._view.DisplayPause();
+            Console.Clear();
+        }
+
         public void DisplayAll()
         {
             List<GetActivityInfoDTO> logs = this._activityService.Get();
 
-            if (logs.Count == 0)
+            if (logs == null || logs.Count == 0)
             {
                 this._view.DisplayEmpty();
+                return;
             }
-            else
-            {
-                this._view.DisplayLogs(logs);
-            }
+
+            this._view.DisplayLogs(logs);
         }
 
         public void FilterByActivity()
@@ -149,11 +166,10 @@ namespace Personal_Fitness_Health_Tracker.Controller
             if (logs == null || logs.Count == 0)
             {
                 this._view.DisplayEmpty();
+                return;
             }
-            else
-            {
-                this._view.DisplayLogs(logs);
-            }
+
+            this._view.DisplayLogs(logs);
         }
 
         public void FilterByDate()
@@ -163,11 +179,10 @@ namespace Personal_Fitness_Health_Tracker.Controller
             if (logs == null || logs.Count == 0)
             {
                 this._view.DisplayEmpty();
+                return;
             }
-            else
-            {
-                this._view.DisplayLogs(logs);
-            }
+
+            this._view.DisplayLogs(logs);
         }
 
         public void SearchActivity()
@@ -175,14 +190,40 @@ namespace Personal_Fitness_Health_Tracker.Controller
             string textToSearch = this._view.GetString();
             List<GetActivityInfoDTO> logs = this._activityService.Search(textToSearch);
 
-            if (logs.Count == 0)
+            if (logs == null || logs.Count == 0)
             {
                 this._view.DisplayEmpty();
+                return;
             }
-            else
+
+            this._view.DisplayLogs(logs);
+        }
+
+        public void DeleteActivity()
+        {
+            List<GetActivityInfoDTO> logs = this._activityService.Get();
+            if (logs == null || logs.Count == 0)
             {
-                this._view.DisplayLogs(logs);
+                this._view.DisplayEmpty();
+                return;
             }
+
+            GetActivityInfoDTO log = this._view.SelectActivity(logs);
+            this._activityService.Delete(log);
+        }
+
+        public void UpdateActivity()
+        {
+            List<GetActivityInfoDTO> logs = this._activityService.Get();
+            if (logs == null || logs.Count == 0)
+            {
+                this._view.DisplayEmpty();
+                return;
+            }
+
+            GetActivityInfoDTO log = this._view.SelectActivity(logs);
+            log = this._view.GetUpatedLog(log);
+            this._activityService.Update(log);
         }
 
         public void ExportAsCSV()

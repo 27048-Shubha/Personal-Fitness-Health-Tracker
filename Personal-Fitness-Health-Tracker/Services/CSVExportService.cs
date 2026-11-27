@@ -23,7 +23,7 @@ namespace Personal_Fitness_Health_Tracker.Services
 
             foreach(GetActivityInfoDTO item in data)
             {
-                string row = string.Join(item.Name,
+                string row = string.Join(" ", item.Name,
                     item.Type.ToString(),
                     item.Value.ToString(),
                     item.LoggedAt.ToString());

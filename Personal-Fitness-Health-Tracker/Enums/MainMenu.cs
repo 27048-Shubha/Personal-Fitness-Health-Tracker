@@ -10,8 +10,6 @@ namespace Personal_Fitness_Health_Tracker.Enums
     {
         TodaysSummary,
         LogActivityTab,
-        ViewLogs,
-        SearchLogs,
         HistoryTab,
         ExportToCSV,
     }

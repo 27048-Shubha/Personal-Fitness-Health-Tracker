@@ -110,15 +110,16 @@ namespace Personal_Fitness_Health_Tracker.Services
                     .Where(x => x.LoggedAt.Date == log.LoggedAt.Date)
                     .ToList();
 
-                
+
                 activity.Add(
                     new GetActivityInfoDTO
                     {
+                        Id = log.Id,
                         Name = log.Name,
                         LoggedAt = log.LoggedAt,
                         Type = log.Type,
                         Value = log.Value,
-                        Health = this._streakService.EvaluateHealthForTheDay( dayLogs, log.Type),
+                        Health = this._streakService.EvaluateHealthForTheDay(dayLogs, log.Type),
                     }
                 );
             }
@@ -139,6 +140,25 @@ namespace Personal_Fitness_Health_Tracker.Services
         public void ExportToCSV()
         {
             this._csvExportService.ExportToCSV(this.Get());
+        }
+
+        public void Delete(GetActivityInfoDTO log)
+        {
+            this._activityRepository.Delete(log.Id);
+        }
+
+        public void Update(GetActivityInfoDTO log)
+        {
+            ActivityLog? logToBeUpdated = this._activityRepository.Find(log.Id);
+
+            logToBeUpdated.Name = log.Name;
+            logToBeUpdated.LoggedAt = log.LoggedAt;
+            logToBeUpdated.Value = log.Value;
+
+            if (logToBeUpdated != null)
+            {
+                this._activityRepository.Update(logToBeUpdated, log.Id);
+            }
         }
     }
 }

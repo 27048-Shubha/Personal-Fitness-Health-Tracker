@@ -28,6 +28,8 @@ namespace Personal_Fitness_Health_Tracker.Controller
             this._view.DisplayHeader();
             while (true)
             {
+                this.ShowStreak();
+
                 MainMenu type = this._view.GetMenuOption();
                 switch (type)
                 {
@@ -82,6 +84,12 @@ namespace Personal_Fitness_Health_Tracker.Controller
             }
 
             this._view.DisplayHealthStatus(this._activityService.RecordNew(newActivity));
+        }
+
+        public void ShowStreak()
+        {
+            Dictionary<ActivityType, int> streakInfo = this._activityService.GetStreakInfo();
+            this._view.DisplayStreakInfo(streakInfo);
         }
 
         public void GetTodaysSummary()

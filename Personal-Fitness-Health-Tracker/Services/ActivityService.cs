@@ -11,13 +11,16 @@ namespace Personal_Fitness_Health_Tracker.Services
     using Personal_Fitness_Health_Tracker.Models;
     using Personal_Fitness_Health_Tracker.Models.DTOs;
     using Personal_Fitness_Health_Tracker.Repositories;
+    using System.Runtime.CompilerServices;
 
     internal class ActivityService
     {
+        private readonly ActivityStreakService _streakService;
         private readonly CSVExportService _csvExportService;
         private readonly ActivityRepository _activityRepository;
-        internal ActivityService(CSVExportService csvExportService, ActivityRepository activityRepository)
+        internal ActivityService(ActivityStreakService streakService, CSVExportService csvExportService, ActivityRepository activityRepository)
         {
+            this._streakService = streakService;
             this._csvExportService = csvExportService;
             this._activityRepository = activityRepository;
         }
@@ -48,30 +51,6 @@ namespace Personal_Fitness_Health_Tracker.Services
             return ActivityValidator.ValidateActivityRange(activity.Type, validationValue);
         }
 
-        public bool ValidateActivityValue(ActivityType activityType, decimal activityValue)
-        {
-            switch (activityType)
-            {
-                case ActivityType.StepsWalked:
-                    return (activityValue > 0);
-
-                case ActivityType.Sleep:
-                    return (activityValue >= 0 && activityValue <= 24);
-
-                case ActivityType.WaterIntake:
-                    return (activityValue >= 0 && activityValue <= 10);
-
-                case ActivityType.BodyWeight:
-                    return (activityValue >= 20 && activityValue <= 250);
-
-                case ActivityType.RestingHeartRate:
-                    return (activityValue > 20 && activityValue < 150);
-
-                default:
-                    return false;
-            }
-        }
-
         public List<GetActivityInfoDTO> Get(DateTime dateTime)
         {
             DateTime startOfDay = dateTime;
@@ -83,6 +62,13 @@ namespace Personal_Fitness_Health_Tracker.Services
         public List<GetActivityInfoDTO> Get()
         {
             return this.MapToDTO(this._activityRepository.Get().FindAll(log => log.UserId == SessionHandler.CurrentUser.Id));
+        }
+        public List<ActivityLog> GetActivityLog(DateTime dateTime)
+        {
+            DateTime startOfDay = dateTime;
+            DateTime endOfDay = startOfDay.AddDays(1);
+            List<ActivityLog> logs = this._activityRepository.Get().FindAll(log => (log.LoggedAt >= startOfDay && log.LoggedAt <= endOfDay));
+            return logs;
         }
 
         public List<GetActivityInfoDTO> GetByActivity(ActivityType type)
@@ -107,7 +93,7 @@ namespace Personal_Fitness_Health_Tracker.Services
                 }
             }
 
-            return logs;
+            return similarLogs;
         }
 
         public List<GetActivityInfoDTO> MapToDTO(List<ActivityLog> logs)
@@ -120,6 +106,11 @@ namespace Personal_Fitness_Health_Tracker.Services
             List<GetActivityInfoDTO> activity = new();
             foreach (ActivityLog log in logs)
             {
+                var dayLogs = logs
+                    .Where(x => x.LoggedAt.Date == log.LoggedAt.Date)
+                    .ToList();
+
+                
                 activity.Add(
                     new GetActivityInfoDTO
                     {
@@ -127,11 +118,22 @@ namespace Personal_Fitness_Health_Tracker.Services
                         LoggedAt = log.LoggedAt,
                         Type = log.Type,
                         Value = log.Value,
+                        Health = this._streakService.EvaluateHealthForTheDay( dayLogs, log.Type),
                     }
                 );
             }
 
             return activity;
+        }
+
+        public bool ValidateActivityValue(ActivityType activityType, decimal activityValue)
+        {
+            return this._streakService.ValidateActivityValue(activityType, activityValue);
+        }
+
+        public Dictionary<ActivityType, int> GetStreakInfo()
+        {
+            return this._streakService.GetStreakInfo(this.GetActivityLog(DateTime.Today));
         }
 
         public void ExportToCSV()

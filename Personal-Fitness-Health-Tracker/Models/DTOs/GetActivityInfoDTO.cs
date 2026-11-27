@@ -13,5 +13,7 @@ namespace Personal_Fitness_Health_Tracker.Models.DTOs
         public DateTime LoggedAt { get; set; }
         public ActivityType Type { get; set; }
         public decimal Value { get; set; }
+
+        public decimal Health { get; set; }
     }
 }

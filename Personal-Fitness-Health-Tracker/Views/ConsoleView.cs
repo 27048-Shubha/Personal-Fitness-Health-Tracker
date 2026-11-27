@@ -11,6 +11,7 @@ namespace Personal_Fitness_Health_Tracker.Views
     using Spectre.Console;
     using System.Diagnostics;
     using System.Globalization;
+    using System.IO;
     using static System.Runtime.InteropServices.JavaScript.JSType;
 
     internal class ConsoleView
@@ -54,10 +55,11 @@ namespace Personal_Fitness_Health_Tracker.Views
             table.AddColumn("[yellow]Type[/]");
             table.AddColumn("[yellow]LoggedAt[/]");
             table.AddColumn("[yellow]Value[/]");
+            table.AddColumn("[yellow]Health status for the day[/]");
 
             foreach (GetActivityInfoDTO log in logs)
             {
-                table.AddRow(log.Name, log.Type.ToString(), log.LoggedAt.ToString(), log.Value.ToString() + this.DisplayMetrics(log.Type));
+                table.AddRow(log.Name, log.Type.ToString(), log.LoggedAt.ToString(), log.Value.ToString() + this.DisplayMetrics(log.Type), log.Health.ToString());
             }
 
             AnsiConsole.Write(table);
@@ -81,6 +83,25 @@ namespace Personal_Fitness_Health_Tracker.Views
         public void DisplayExportSuccess()
         {
             AnsiConsole.MarkupLine("[green]Export successful! Check your \'Downloads\'![/]");
+        }
+
+        public void DisplayStreakInfo(Dictionary<ActivityType, int> streakInfo)
+        {
+            var maxStreak = streakInfo.Values.Max();
+            const int barWidth = 10;
+
+            foreach (var (activity, streak) in streakInfo)
+            {
+                var filled = maxStreak == 0
+                    ? 0
+                    : (int)Math.Round((double)streak / maxStreak * barWidth);
+
+                var bar = new string('█', filled) +
+                          new string('░', barWidth - filled);
+
+                Console.WriteLine($"{activity}");
+                Console.WriteLine($"{bar} {streak}");
+            }
         }
 
         public MainMenu GetMenuOption()

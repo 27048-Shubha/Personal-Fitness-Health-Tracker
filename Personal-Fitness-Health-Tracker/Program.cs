@@ -11,7 +11,9 @@ namespace Personal_Fitness_Health_Tracker
         {
             ConsoleView console = new ConsoleView();
             ActivityRepository activityRepository = new ActivityRepository();
-            ActivityService activityService = new ActivityService(activityRepository);
+            ActivityStreakService streakService = new ActivityStreakService();
+            CSVExportService exportService = new();
+            ActivityService activityService = new ActivityService(streakService, exportService, activityRepository);
             MainMenuController mainMenuController = new MainMenuController(activityService, console);
 
             mainMenuController.RunMainMenu();

@@ -11,6 +11,6 @@ namespace Personal_Fitness_Health_Tracker.Enums
         TodaysSummary,
         LogActivityTab,
         HistoryTab,
-        TrendsTab,
+        ExportToCSV,
     }
 }

@@ -9,7 +9,10 @@ namespace Personal_Fitness_Health_Tracker.Views
     using Personal_Fitness_Health_Tracker.Enums;
     using Personal_Fitness_Health_Tracker.Models.DTOs;
     using Spectre.Console;
+    using System.Diagnostics;
     using System.Globalization;
+    using System.IO;
+    using static System.Runtime.InteropServices.JavaScript.JSType;
 
     internal class ConsoleView
     {
@@ -39,7 +42,7 @@ namespace Personal_Fitness_Health_Tracker.Views
 
         public void DisplayEmpty()
         {
-            AnsiConsole.MarkupLine(":warning: [yellow]No Activity Logs Found[/]");
+            AnsiConsole.MarkupLine("[yellow]No Activity Logs Found[/]");
         }
             
         public void DisplayLogs(List<GetActivityInfoDTO> logs)
@@ -52,10 +55,11 @@ namespace Personal_Fitness_Health_Tracker.Views
             table.AddColumn("[yellow]Type[/]");
             table.AddColumn("[yellow]LoggedAt[/]");
             table.AddColumn("[yellow]Value[/]");
+            table.AddColumn("[yellow]Health status for the day[/]");
 
             foreach (GetActivityInfoDTO log in logs)
             {
-                table.AddRow(log.Name, log.Type.ToString(), log.LoggedAt.ToString(), log.Value.ToString() + this.DisplayMetrics(log.Type));
+                table.AddRow(log.Name, log.Type.ToString(), log.LoggedAt.ToString(), log.Value.ToString() + this.DisplayMetrics(log.Type), log.Health.ToString());
             }
 
             AnsiConsole.Write(table);
@@ -63,7 +67,8 @@ namespace Personal_Fitness_Health_Tracker.Views
 
         public void DisplayPause()
         {
-            Console.WriteLine("Returning Back to Main Menu...");
+            Console.WriteLine("Press Any Key to Continue");
+            Console.ReadLine();
         }
 
         public void DisplayTodaysSummaryHeader()
@@ -75,14 +80,86 @@ namespace Personal_Fitness_Health_Tracker.Views
             AnsiConsole.MarkupLine("[yellow]Upcoming Feature! Under implementation[/]");
         }
 
+        public void DisplayExportSuccess()
+        {
+            AnsiConsole.MarkupLine("[green]Export successful! Check your \'Downloads\'![/]");
+        }
+
+        public void DisplayStreakInfo(Dictionary<ActivityType, int> streakInfo)
+        {
+            var maxStreak = streakInfo.Values.Max();
+            const int barWidth = 10;
+
+            foreach (var (activity, streak) in streakInfo)
+            {
+                var filled = maxStreak == 0
+                    ? 0
+                    : (int)Math.Round((double)streak / maxStreak * barWidth);
+
+                var bar = new string('█', filled) +
+                          new string('░', barWidth - filled);
+
+                Console.WriteLine($"{activity}");
+                Console.WriteLine($"{bar} {streak}");
+            }
+        }
+
         public MainMenu GetMenuOption()
         {
             MainMenu choice = AnsiConsole.Prompt(
                     new SelectionPrompt<MainMenu>()
                     .Title("[yellow]Choose an option[/]")
-                    .AddChoices(MainMenu.TodaysSummary, MainMenu.LogActivityTab, MainMenu.HistoryTab, MainMenu.TrendsTab));
+                    .AddChoices(MainMenu.TodaysSummary, MainMenu.LogActivityTab, MainMenu.HistoryTab, MainMenu.ExportToCSV));
 
             return choice;
+        }
+
+        public ViewMenu GetViewMenuOption()
+        {
+            ViewMenu choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<ViewMenu>()
+                    .Title("[yellow]Choose an option[/]")
+                    .AddChoices(ViewMenu.All, ViewMenu.Activity, ViewMenu.Date));
+
+            return choice;
+        }
+
+        public HistoryTab GetHistoryTabMenu()
+        {
+            HistoryTab choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<HistoryTab>()
+                    .Title("[yellow]Choose an option[/]")
+                    .AddChoices(HistoryTab.Edit, HistoryTab.Delete, HistoryTab.View, HistoryTab.Search));
+
+            return choice;
+        }
+
+        public GetActivityInfoDTO SelectActivity(List<GetActivityInfoDTO> logs)
+        {
+            GetActivityInfoDTO log = AnsiConsole.Prompt(
+                    new SelectionPrompt<GetActivityInfoDTO>()
+                    .Title("[yellow]Choose one activity log[/]")
+                    .UseConverter(log => $"{log.Name} | {log.LoggedAt:dd-MMM-yyyy} | {log.Type} | {log.Value}")
+                    .AddChoices(logs));
+
+            return log;
+        }
+
+        public GetActivityInfoDTO GetUpatedLog(GetActivityInfoDTO log)
+        {
+            log.Name = AnsiConsole.Prompt(
+                new TextPrompt<string>($"Name:")
+                .DefaultValue(log.Name));
+
+            log.Value = AnsiConsole.Prompt(
+                new TextPrompt<decimal>($"Value:")
+                .DefaultValue(log.Value));
+
+            log.LoggedAt = AnsiConsole.Prompt(
+                new TextPrompt<DateTime>($"Time:")
+                .DefaultValue(log.LoggedAt));
+
+            return log;
         }
 
         public void DisplayActivityRule(ActivityType type)
@@ -117,13 +194,33 @@ namespace Personal_Fitness_Health_Tracker.Views
             return name;
         }
 
+        public string GetString()
+        {
+            string name = AnsiConsole.Ask<string>("Enter any valid string: ");
+            return name;
+        }
+
         public DateTime GetActivityTime(ActivityType type)
         {
             string dateTimeFormat = "dd/MM/yyyy HH:mm";
-            string name = AnsiConsole.Ask<string>($"({type.ToString()}) Enter log time: (FORMAT: {dateTimeFormat}) ");
+            string name = AnsiConsole.Ask<string>($"({type.ToString()}) Enter log time: ({dateTimeFormat}) ");
             DateTime parsedInput;
 
             while (! DateTime.TryParseExact(name, dateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedInput))
+            {
+                name = AnsiConsole.Ask<string>($"Invalid format for date time! Valid format: {dateTimeFormat}");
+            }
+
+            return parsedInput;
+        }
+
+        public DateTime GetActivityTime()
+        {
+            string dateTimeFormat = "dd/MM/yyyy HH:mm";
+            string name = AnsiConsole.Ask<string>($"Enter date & time to search: ({dateTimeFormat}) ");
+            DateTime parsedInput;
+
+            while (!DateTime.TryParseExact(name, dateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedInput))
             {
                 name = AnsiConsole.Ask<string>($"Invalid format for date time! Valid format: {dateTimeFormat}");
             }

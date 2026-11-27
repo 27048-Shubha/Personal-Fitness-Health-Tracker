@@ -9,7 +9,9 @@ namespace Personal_Fitness_Health_Tracker.Views
     using Personal_Fitness_Health_Tracker.Enums;
     using Personal_Fitness_Health_Tracker.Models.DTOs;
     using Spectre.Console;
+    using System.Diagnostics;
     using System.Globalization;
+    using static System.Runtime.InteropServices.JavaScript.JSType;
 
     internal class ConsoleView
     {
@@ -86,7 +88,17 @@ namespace Personal_Fitness_Health_Tracker.Views
             MainMenu choice = AnsiConsole.Prompt(
                     new SelectionPrompt<MainMenu>()
                     .Title("[yellow]Choose an option[/]")
-                    .AddChoices(MainMenu.TodaysSummary, MainMenu.LogActivityTab, MainMenu.HistoryTab, MainMenu.ExportToCSV));
+                    .AddChoices(MainMenu.TodaysSummary, MainMenu.LogActivityTab, MainMenu.ViewLogs, MainMenu.SearchLogs, MainMenu.HistoryTab, MainMenu.ExportToCSV));
+
+            return choice;
+        }
+
+        public ViewMenu GetViewMenuOption()
+        {
+            ViewMenu choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<ViewMenu>()
+                    .Title("[yellow]Choose an option[/]")
+                    .AddChoices(ViewMenu.All, ViewMenu.Activity, ViewMenu.Date));
 
             return choice;
         }
@@ -123,6 +135,12 @@ namespace Personal_Fitness_Health_Tracker.Views
             return name;
         }
 
+        public string GetString()
+        {
+            string name = AnsiConsole.Ask<string>("Enter any valid string: ");
+            return name;
+        }
+
         public DateTime GetActivityTime(ActivityType type)
         {
             string dateTimeFormat = "dd/MM/yyyy HH:mm";
@@ -130,6 +148,20 @@ namespace Personal_Fitness_Health_Tracker.Views
             DateTime parsedInput;
 
             while (! DateTime.TryParseExact(name, dateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedInput))
+            {
+                name = AnsiConsole.Ask<string>($"Invalid format for date time! Valid format: {dateTimeFormat}");
+            }
+
+            return parsedInput;
+        }
+
+        public DateTime GetActivityTime()
+        {
+            string dateTimeFormat = "dd/MM/yyyy HH:mm";
+            string name = AnsiConsole.Ask<string>($"Enter date & time to search: ({dateTimeFormat}) ");
+            DateTime parsedInput;
+
+            while (!DateTime.TryParseExact(name, dateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedInput))
             {
                 name = AnsiConsole.Ask<string>($"Invalid format for date time! Valid format: {dateTimeFormat}");
             }

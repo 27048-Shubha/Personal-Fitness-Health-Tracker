@@ -39,6 +39,14 @@ namespace Personal_Fitness_Health_Tracker.Controller
                         this.RecordNewActivity();
                         break;
 
+                    case MainMenu.ViewLogs:
+                        this.RunViewMenu();
+                        break;
+
+                    case MainMenu.SearchLogs:
+                        this.SearchActivity();
+                        break;
+
                     case MainMenu.HistoryTab:
                         this._view.DisplayUpcomingFeature();
                         break;
@@ -90,6 +98,84 @@ namespace Personal_Fitness_Health_Tracker.Controller
             }
         }
 
+        public void RunViewMenu()
+        {
+            ViewMenu type = this._view.GetViewMenuOption();
+            switch (type)
+            {
+                case ViewMenu.All:
+                    this.DisplayAll();
+                    return;
+
+                case ViewMenu.Activity:
+                    this.FilterByActivity();
+                    return;
+
+                case ViewMenu.Date:
+                    this.FilterByDate();
+                    return;
+            }
+
+            this._view.DisplayPause();
+            Console.Clear();
+        }
+
+        public void DisplayAll()
+        {
+            List<GetActivityInfoDTO> logs = this._activityService.Get();
+
+            if (logs.Count == 0)
+            {
+                this._view.DisplayEmpty();
+            }
+            else
+            {
+                this._view.DisplayLogs(logs);
+            }
+        }
+
+        public void FilterByActivity()
+        {
+            ActivityType type = this._view.GetActivity();
+            List<GetActivityInfoDTO> logs = this._activityService.GetByActivity(type);
+            if (logs == null || logs.Count == 0)
+            {
+                this._view.DisplayEmpty();
+            }
+            else
+            {
+                this._view.DisplayLogs(logs);
+            }
+        }
+
+        public void FilterByDate()
+        {
+            DateTime dateTime = this._view.GetActivityTime();
+            List<GetActivityInfoDTO> logs = this._activityService.Get(dateTime);
+            if (logs == null || logs.Count == 0)
+            {
+                this._view.DisplayEmpty();
+            }
+            else
+            {
+                this._view.DisplayLogs(logs);
+            }
+        }
+
+        public void SearchActivity()
+        {
+            string textToSearch = this._view.GetString();
+            List<GetActivityInfoDTO> logs = this._activityService.Search(textToSearch);
+
+            if (logs.Count == 0)
+            {
+                this._view.DisplayEmpty();
+            }
+            else
+            {
+                this._view.DisplayLogs(logs);
+            }
+        }
 
         public void ExportAsCSV()
         {

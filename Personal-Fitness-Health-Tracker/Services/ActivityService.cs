@@ -74,15 +74,40 @@ namespace Personal_Fitness_Health_Tracker.Services
 
         public List<GetActivityInfoDTO> Get(DateTime dateTime)
         {
-            DateTime startOfDay = DateTime.Today;
+            DateTime startOfDay = dateTime;
             DateTime endOfDay = startOfDay.AddDays(1);
-            List < GetActivityInfoDTO >  logs = this.Get().FindAll(log => (log.LoggedAt >= startOfDay && log.LoggedAt <= endOfDay));
+            List<GetActivityInfoDTO> logs = this.Get().FindAll(log => (log.LoggedAt >= startOfDay && log.LoggedAt <= endOfDay));
             return logs;
         }
 
         public List<GetActivityInfoDTO> Get()
         {
             return this.MapToDTO(this._activityRepository.Get().FindAll(log => log.UserId == SessionHandler.CurrentUser.Id));
+        }
+
+        public List<GetActivityInfoDTO> GetByActivity(ActivityType type)
+        {
+            List<GetActivityInfoDTO> logs = this.Get().FindAll(log => log.Type == type);
+            return logs;
+        }
+
+        public List<GetActivityInfoDTO> Search(string textToSearch)
+        {
+            List<GetActivityInfoDTO> logs = this.Get();
+            List<GetActivityInfoDTO> similarLogs = new();
+
+            foreach (GetActivityInfoDTO log in logs)
+            {
+                if ((log.Name.Contains(textToSearch))
+                    || (log.LoggedAt.ToString().Contains(textToSearch))
+                    || (log.Type.ToString().Contains(textToSearch))
+                    || (log.Value.ToString().Contains(textToSearch)))
+                {
+                    similarLogs.Add(log);
+                }
+            }
+
+            return logs;
         }
 
         public List<GetActivityInfoDTO> MapToDTO(List<ActivityLog> logs)
@@ -93,7 +118,7 @@ namespace Personal_Fitness_Health_Tracker.Services
             }
 
             List<GetActivityInfoDTO> activity = new();
-            foreach(ActivityLog log in logs)
+            foreach (ActivityLog log in logs)
             {
                 activity.Add(
                     new GetActivityInfoDTO

@@ -14,24 +14,33 @@ namespace Personal_Fitness_Health_Tracker.Utility
             return File.Exists(filePath);
         }
 
-        public static List<T> ReadFromFile(string fileName)
+        public static string GetFilePath(string fileName)
         {
             string filePath = Path.Combine(AppContext.BaseDirectory, fileName);
-            if (!isFileExists(fileName))
+            if (!isFileExists(filePath))
             {
-                File.Create(filePath);
+                File.WriteAllText(filePath, "[]");
+            }
+            return filePath;
+        }
+
+        public static List<T> ReadFromFile(string fileName)
+        {
+            string filePath = GetFilePath(fileName);
+
+            string json = File.ReadAllText(filePath);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return new List<T>();
             }
 
-            List<T> content = JsonSerializer.Deserialize<List<T>>(File.ReadAllText(filePath)) ?? new List<T>();
-            return content;
+            return JsonSerializer.Deserialize<List<T>>(File.ReadAllText(filePath)) ?? new List<T>();
         }
 
         public static void WriteToFile(string fileName, List<T> content)
         {
-            string filePath = Path.Combine(AppContext.BaseDirectory, fileName);
-            string jsonContent = JsonSerializer.Serialize(content);
-
-            File.WriteAllText(filePath, jsonContent);
+            string filePath = GetFilePath(fileName);
+            File.WriteAllText(filePath, JsonSerializer.Serialize(content));
         }
     }
 }
